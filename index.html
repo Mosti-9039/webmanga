@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MangaVerse — Read the Infinite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel:wght@400;700;900&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0a0a0c; --ink-2: #111116; --ink-3: #18181f;
+    --crimson: #c0162a; --crimson-glow: #e01c33; --crimson-dim: #7a0d1a;
+    --silver: #c8c8d4; --silver-dim: #6b6b80; --white: #f0eff5;
+    --card-bg: #13131a; --border: rgba(200,200,212,0.07);
+    --font-display: 'Bebas Neue', sans-serif;
+    --font-title: 'Cinzel', serif;
+    --font-body: 'Sora', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--ink); color: var(--silver); font-family: var(--font-body); overflow-x: hidden; cursor: default; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+    opacity: 0.028; pointer-events: none; z-index: 9999;
+  }
+  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; display: flex; align-items: center; gap: 2rem; padding: 0 3rem; height: 68px; transition: background 0.4s, box-shadow 0.4s; }
+  nav.scrolled { background: rgba(10,10,12,0.82); backdrop-filter: blur(18px) saturate(1.5); box-shadow: 0 1px 0 rgba(192,22,42,0.18), 0 8px 32px rgba(0,0,0,0.6); }
+  .logo { display: flex; align-items: center; gap: 0.55rem; text-decoration: none; flex-shrink: 0; }
+  .logo-icon { width: 36px; height: 36px; background: var(--crimson); clip-path: polygon(50% 0%, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 1rem; color: #fff; letter-spacing: 0.5px; box-shadow: 0 0 18px rgba(192,22,42,0.5); }
+  .logo-text { font-family: var(--font-title); font-size: 1.15rem; font-weight: 700; color: var(--white); letter-spacing: 0.08em; }
+  .logo-text span { color: var(--crimson); }
+  .nav-links { display: flex; align-items: center; gap: 0.25rem; list-style: none; margin-left: 1rem; }
+  .nav-links a { text-decoration: none; font-size: 0.78rem; font-weight: 500; letter-spacing: 0.1em; color: var(--silver-dim); padding: 0.5rem 0.75rem; border-radius: 4px; transition: color 0.2s, background 0.2s; text-transform: uppercase; }
+  .nav-links a:hover { color: var(--white); background: rgba(255,255,255,0.05); }
+  .nav-right { margin-left: auto; display: flex; align-items: center; gap: 1rem; }
+  .search-wrap { position: relative; display: flex; align-items: center; }
+  .search-icon { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--silver-dim); transition: color 0.2s; flex-shrink: 0; z-index: 2; }
+  .search-icon:hover { color: var(--white); }
+  .search-icon svg { width: 18px; height: 18px; }
+  #searchInput { position: absolute; right: 0; width: 0; opacity: 0; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 6px; color: var(--white); font-family: var(--font-body); font-size: 0.82rem; padding: 0 1rem; height: 36px; outline: none; transition: width 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.35s; pointer-events: none; }
+  #searchInput.open { width: 220px; opacity: 1; pointer-events: all; border-color: rgba(192,22,42,0.4); }
+  #searchInput::placeholder { color: var(--silver-dim); }
+  .btn-signin { background: var(--crimson); color: #fff; border: none; cursor: pointer; font-family: var(--font-body); font-size: 0.78rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; padding: 0.5rem 1.25rem; border-radius: 5px; box-shadow: 0 0 16px rgba(192,22,42,0.35); transition: background 0.2s, box-shadow 0.2s, transform 0.15s; }
+  .btn-signin:hover { background: var(--crimson-glow); box-shadow: 0 0 28px rgba(224,28,51,0.55); transform: translateY(-1px); }
+  .hero { position: relative; height: 100vh; min-height: 600px; display: flex; align-items: flex-end; padding: 0 6rem 5rem; overflow: hidden; }
+  .hero-bg { position: absolute; inset: 0; background: center/cover no-repeat; transform-origin: center; animation: heroFloat 12s ease-in-out infinite alternate; filter: saturate(0.4) brightness(0.45); }
+  @keyframes heroFloat { 0% { transform: scale(1.05) translateY(0px); } 100% { transform: scale(1.12) translateY(-14px); } }
+  .hero-gradient { position: absolute; inset: 0; background: linear-gradient(to top, rgba(10,10,12,1) 0%, rgba(10,10,12,0.75) 35%, rgba(10,10,12,0.15) 70%, transparent 100%), linear-gradient(to right, rgba(10,10,12,0.7) 0%, transparent 55%); }
+  .hero-badge { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--crimson-glow); border: 1px solid rgba(192,22,42,0.4); padding: 0.3rem 0.8rem; border-radius: 3px; margin-bottom: 1rem; background: rgba(192,22,42,0.08); }
+  .hero-badge::before { content: '◆'; font-size: 0.5rem; }
+  .hero-content { position: relative; z-index: 2; max-width: 680px; }
+  .hero-title { font-family: var(--font-display); font-size: clamp(3.5rem, 7vw, 6.5rem); line-height: 0.95; color: var(--white); letter-spacing: 0.02em; margin-bottom: 1rem; text-shadow: 0 4px 40px rgba(0,0,0,0.8); }
+  .hero-title em { color: var(--crimson-glow); font-style: normal; }
+  .hero-meta { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+  .genre-tag { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; padding: 0.25rem 0.65rem; border-radius: 3px; border: 1px solid rgba(200,200,212,0.2); background: rgba(200,200,212,0.07); color: var(--silver); }
+  .stars { display: flex; gap: 2px; }
+  .star { color: #ffd700; font-size: 0.9rem; }
+  .rating-num { font-size: 0.82rem; color: var(--silver-dim); margin-left: 0.3rem; }
+  .hero-desc { font-size: 0.88rem; line-height: 1.75; color: var(--silver-dim); max-width: 480px; margin-bottom: 2rem; }
+  .hero-actions { display: flex; gap: 1rem; align-items: center; }
+  .btn-primary { background: var(--crimson); color: #fff; border: none; cursor: pointer; font-family: var(--font-body); font-size: 0.82rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; padding: 0.85rem 2.2rem; border-radius: 5px; box-shadow: 0 0 30px rgba(192,22,42,0.4); transition: all 0.2s; display: flex; align-items: center; gap: 0.6rem; }
+  .btn-primary:hover { background: var(--crimson-glow); box-shadow: 0 0 45px rgba(224,28,51,0.6); transform: translateY(-2px); }
+  .btn-secondary { background: transparent; color: var(--silver); border: 1px solid var(--border); cursor: pointer; font-family: var(--font-body); font-size: 0.82rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; padding: 0.85rem 1.8rem; border-radius: 5px; transition: all 0.2s; }
+  .btn-secondary:hover { border-color: rgba(200,200,212,0.25); color: var(--white); }
+  .section { padding: 4rem 3.5rem; }
+  .section-header { display: flex; align-items: baseline; gap: 1.2rem; margin-bottom: 1.8rem; }
+  .section-title { font-family: var(--font-display); font-size: 2.2rem; letter-spacing: 0.04em; color: var(--white); }
+  .section-line { flex: 1; height: 1px; background: linear-gradient(to right, rgba(192,22,42,0.4), transparent); }
+  .see-all { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--crimson-glow); text-decoration: none; cursor: pointer; transition: opacity 0.2s; }
+  .see-all:hover { opacity: 0.75; }
+  .manga-row { display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 1.2rem; scroll-snap-type: x mandatory; -ms-overflow-style: none; scrollbar-width: none; min-height: 320px; }
+  .manga-row::-webkit-scrollbar { display: none; }
+  .manga-card { flex-shrink: 0; width: 155px; scroll-snap-align: start; position: relative; border-radius: 8px; overflow: hidden; background: var(--card-bg); border: 1px solid var(--border); cursor: pointer; transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s; opacity: 0; transform: translateY(24px); animation: cardReveal 0.5s forwards; }
+  @keyframes cardReveal { to { opacity: 1; transform: translateY(0); } }
+  .manga-card:hover { transform: translateY(-8px) scale(1.03); box-shadow: 0 16px 48px rgba(0,0,0,0.7), 0 0 24px rgba(192,22,42,0.25); z-index: 10; }
+  .manga-card.dimmed { opacity: 0.25; filter: saturate(0.2); }
+  .manga-card.highlighted { box-shadow: 0 0 0 2px var(--crimson), 0 8px 32px rgba(192,22,42,0.4); }
+  .card-img-wrap { position: relative; overflow: hidden; }
+  .card-img-wrap img { width: 100%; height: 218px; object-fit: cover; display: block; transition: transform 0.4s; filter: saturate(0.7); background: var(--ink-3); }
+  .manga-card:hover .card-img-wrap img { transform: scale(1.07); filter: saturate(1); }
+  .card-overlay { position: absolute; inset: 0; background: rgba(10,10,12,0.78); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; }
+  .manga-card:hover .card-overlay { opacity: 1; }
+  .card-read-btn { background: var(--crimson); color: #fff; font-family: var(--font-body); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; padding: 0.5rem 1.1rem; border: none; border-radius: 4px; cursor: pointer; box-shadow: 0 0 20px rgba(192,22,42,0.5); }
+  .card-rank { position: absolute; top: 8px; left: 8px; font-family: var(--font-display); font-size: 1.5rem; color: rgba(255,255,255,0.12); line-height: 1; pointer-events: none; }
+  .card-body { padding: 0.7rem 0.75rem 0.85rem; }
+  .card-title { font-size: 0.78rem; font-weight: 600; color: var(--white); line-height: 1.35; margin-bottom: 0.45rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .card-meta { display: flex; align-items: center; justify-content: space-between; }
+  .card-genre { font-size: 0.62rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--crimson-glow); }
+  .card-chapter { font-size: 0.62rem; color: var(--silver-dim); }
+  .card-stars { display: flex; align-items: center; gap: 2px; margin-top: 0.35rem; }
+  .card-stars span { font-size: 0.65rem; color: #ffd700; }
+  .card-stars .r { font-size: 0.6rem; color: var(--silver-dim); margin-left: 3px; }
+  .skel-card { flex-shrink: 0; width: 155px; border-radius: 8px; overflow: hidden; background: var(--card-bg); border: 1px solid var(--border); }
+  .skel-img { width: 100%; height: 218px; background: linear-gradient(90deg,#18181f 25%,#1f1f28 50%,#18181f 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; }
+  .skel-body { padding: 0.7rem 0.75rem; }
+  .skel-line { height: 10px; border-radius: 4px; margin-bottom: 8px; background: linear-gradient(90deg,#18181f 25%,#1f1f28 50%,#18181f 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; }
+  .skel-line.s { width: 55%; }
+  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+  .row-err { display:flex; align-items:center; justify-content:center; width:100%; padding:2rem; color:var(--silver-dim); font-size:0.82rem; gap:0.5rem; flex-direction: column; }
+  .row-err strong { color:var(--crimson-glow); }
+  .row-err .retry-btn { margin-top: 0.75rem; background: transparent; border: 1px solid var(--crimson-dim); color: var(--crimson-glow); font-family: var(--font-body); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; padding: 0.4rem 1rem; border-radius: 4px; cursor: pointer; transition: all 0.2s; }
+  .row-err .retry-btn:hover { background: var(--crimson-dim); color: #fff; }
+  .proxy-notice { display: none; position: fixed; bottom: 1.5rem; right: 1.5rem; background: #13131a; border: 1px solid rgba(192,22,42,0.3); border-radius: 8px; padding: 1rem 1.25rem; font-size: 0.75rem; color: var(--silver-dim); max-width: 320px; z-index: 2000; box-shadow: 0 8px 32px rgba(0,0,0,0.6); }
+  .proxy-notice.show { display: block; }
+  .proxy-notice strong { color: var(--crimson-glow); display: block; margin-bottom: 0.4rem; }
+  .proxy-notice a { color: var(--crimson-glow); }
+  .proxy-notice .close-notice { float: right; cursor: pointer; color: var(--silver-dim); margin-left: 0.5rem; }
+  .categories-section { padding: 2rem 3.5rem 4rem; }
+  .cat-grid { display: flex; flex-wrap: wrap; gap: 0.7rem; }
+  .cat-pill { font-family: var(--font-body); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.55rem 1.3rem; border: 1px solid var(--border); border-radius: 30px; background: var(--card-bg); color: var(--silver-dim); cursor: pointer; transition: all 0.22s; user-select: none; }
+  .cat-pill:hover, .cat-pill.active { background: var(--crimson); border-color: var(--crimson); color: #fff; box-shadow: 0 0 18px rgba(192,22,42,0.4); }
+  footer { border-top: 1px solid var(--border); padding: 3rem 3.5rem 2.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem; }
+  .footer-logo { font-family: var(--font-title); font-size: 1rem; color: var(--silver-dim); }
+  .footer-logo span { color: var(--crimson); }
+  .footer-links { display: flex; gap: 1.8rem; list-style: none; }
+  .footer-links a { font-size: 0.72rem; color: var(--silver-dim); text-decoration: none; letter-spacing: 0.08em; transition: color 0.2s; }
+  .footer-links a:hover { color: var(--white); }
+  .footer-copy { font-size: 0.68rem; color: #3a3a4a; letter-spacing: 0.05em; }
+  .fade-in { opacity: 0; transform: translateY(28px); transition: opacity 0.7s, transform 0.7s; }
+  .fade-in.visible { opacity: 1; transform: none; }
+  .section-divider { height: 1px; background: linear-gradient(to right, transparent, var(--border), transparent); margin: 0 3.5rem; }
+</style>
+</head>
+<body>
+
+<!-- Proxy failure notice -->
+<div class="proxy-notice" id="proxyNotice">
+  <span class="close-notice" onclick="document.getElementById('proxyNotice').classList.remove('show')">✕</span>
+  <strong>⚠ CORS Proxy Needed</strong>
+  All proxies failed. Visit <a href="https://cors-anywhere.herokuapp.com/corsdemo" target="_blank">cors-anywhere demo</a> and click "Request Access", then reload this page.
+</div>
+
+<nav id="navbar">
+  <a href="index.html" class="logo">
+    <div class="logo-icon">MV</div>
+    <span class="logo-text">Manga<span>Verse</span></span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="#">Browse</a></li>
+    <li><a href="#categories">Categories</a></li>
+    <li><a href="#">New Releases</a></li>
+    <li><a href="#">Account</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="search-wrap">
+      <div class="search-icon" id="searchToggle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+      <input type="text" id="searchInput" placeholder="Search manga…" autocomplete="off"/>
+    </div>
+    <button class="btn-signin">Sign In</button>
+  </div>
+</nav>
+
+<section class="hero" id="home">
+  <div class="hero-bg" id="heroBg"></div>
+  <div class="hero-gradient"></div>
+  <div class="hero-content">
+    <div class="hero-badge">Featured This Week</div>
+    <h1 class="hero-title" id="heroTitle">Loading…</h1>
+    <div class="hero-meta" id="heroMeta"></div>
+    <p class="hero-desc" id="heroDesc">Fetching featured manga from MangaDex…</p>
+    <div class="hero-actions">
+      <button class="btn-primary" id="heroReadBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        Read Now
+      </button>
+      <button class="btn-secondary" id="heroDetailBtn">More Info</button>
+    </div>
+  </div>
+</section>
+
+<section class="categories-section fade-in" id="categories">
+  <div class="section-header">
+    <h2 class="section-title">🗂 Browse by Genre</h2>
+    <div class="section-line"></div>
+  </div>
+  <div class="cat-grid" id="catGrid">
+    <div class="cat-pill active" data-tag="">All</div>
+    <div class="cat-pill" data-tag="391b0423-d847-456f-aff0-8b0cfc03066b">⚔ Action</div>
+    <div class="cat-pill" data-tag="423e2eae-a59a-4ada-89a4-a08c56723d4e">💘 Romance</div>
+    <div class="cat-pill" data-tag="cdc58593-87dd-415e-bbc0-2ec27bf404cc">🔮 Fantasy</div>
+    <div class="cat-pill" data-tag="cdad7e68-1419-41dd-bdce-27753074a640">💀 Horror</div>
+    <div class="cat-pill" data-tag="256c8bd9-4904-4360-bf4f-508a76d67183">🚀 Sci-Fi</div>
+    <div class="cat-pill" data-tag="e5301a23-ebd9-49dd-a0cb-2add944c7fe9">🌸 Slice of Life</div>
+    <div class="cat-pill" data-tag="ace04997-f6bd-436e-b261-779182193d3d">🌀 Isekai</div>
+    <div class="cat-pill" data-tag="69964a64-2f90-4d33-beeb-f3ed2875eb4c">⚽ Sports</div>
+    <div class="cat-pill" data-tag="2d1f5d56-a1e5-4d0d-a961-2193588b08ec">🤖 Mecha</div>
+    <div class="cat-pill" data-tag="eabc5b4c-d38e-4f72-9ff6-c1c0f4b7de82">👁 Supernatural</div>
+    <div class="cat-pill" data-tag="b29d6a3d-1569-4e7a-8cef-cf652e4cf82c">💀 Gore</div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<section class="section fade-in">
+  <div class="section-header">
+    <h2 class="section-title">🔥 Trending Now</h2>
+    <div class="section-line"></div>
+    <a class="see-all">See All →</a>
+  </div>
+  <div class="manga-row" id="trendingRow"></div>
+</section>
+
+<div class="section-divider"></div>
+
+<section class="section fade-in">
+  <div class="section-header">
+    <h2 class="section-title">⭐ Top Rated</h2>
+    <div class="section-line"></div>
+    <a class="see-all">See All →</a>
+  </div>
+  <div class="manga-row" id="topRow"></div>
+</section>
+
+<div class="section-divider"></div>
+
+<section class="section fade-in">
+  <div class="section-header">
+    <h2 class="section-title">🆕 Latest Updates</h2>
+    <div class="section-line"></div>
+    <a class="see-all">See All →</a>
+  </div>
+  <div class="manga-row" id="latestRow"></div>
+</section>
+
+<footer>
+  <div class="footer-logo">Manga<span>Verse</span> &nbsp;— Read the Infinite</div>
+  <ul class="footer-links">
+    <li><a href="#">About</a></li><li><a href="#">Privacy</a></li>
+    <li><a href="#">Terms</a></li><li><a href="#">Contact</a></li>
+    <li><a href="#">Discord</a></li>
+  </ul>
+  <div class="footer-copy">© 2025 MangaVerse. All rights reserved.</div>
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  FIXED CORS-AWARE FETCH
+//  Root cause of original bug: allorigins wraps response
+//  in { contents: "..." } — must unwrap before parsing.
+// ═══════════════════════════════════════════════════════
+const BASE   = 'https://api.mangadex.org';
+const COVERS = 'https://uploads.mangadex.org/covers';
+
+// Proxy cover images through corsproxy.io to bypass hotlink blocking
+function proxyCover(url) {
+  if (!url) return '';
+  return `https://corsproxy.io/?${encodeURIComponent(url)}`;
+}
+
+const PROXY_LIST = [
+  {
+    // 1. Direct — works if browser/server doesn't block
+    build:   raw => raw,
+    unwrap:  j   => j,
+  },
+  {
+    // 2. corsproxy.io — passes JSON through as-is
+    build:   raw => `https://corsproxy.io/?${encodeURIComponent(raw)}`,
+    unwrap:  j   => j,
+  },
+  {
+    // 3. allorigins — WRAPS response: { contents: "<json string>" }
+    //    THIS was the silent killer in the original code
+    build:   raw => `https://api.allorigins.win/get?url=${encodeURIComponent(raw)}`,
+    unwrap:  j   => (typeof j.contents === 'string' ? JSON.parse(j.contents) : j.contents),
+  },
+  {
+    // 4. cors-anywhere (requires one-time browser visit to activate)
+    build:   raw => `https://cors-anywhere.herokuapp.com/${raw}`,
+    unwrap:  j   => j,
+  },
+];
+
+let _proxyIdx = 0;
+
+async function mdFetch(path) {
+  const fullUrl = `${BASE}${path}`;
+  for (let attempt = 0; attempt < PROXY_LIST.length; attempt++) {
+    const idx   = (_proxyIdx + attempt) % PROXY_LIST.length;
+    const proxy = PROXY_LIST[idx];
+    const url   = proxy.build(fullUrl);
+    try {
+      const res = await fetch(url, {
+        headers: { 'Accept': 'application/json' },
+        signal:  AbortSignal.timeout(10000),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const raw  = await res.json();
+      const json = proxy.unwrap(raw);           // ← THE FIX
+      if (!json || json.result === 'error')
+        throw new Error(json?.errors?.[0]?.detail || 'API error');
+      _proxyIdx = idx;                          // remember working proxy
+      return json;
+    } catch (e) {
+      console.warn(`[MangaVerse] Proxy #${idx} failed:`, e.message);
+      if (attempt === PROXY_LIST.length - 1) {
+        document.getElementById('proxyNotice').classList.add('show');
+        throw new Error(`All proxies failed. Last: ${e.message}`);
+      }
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  REST OF APP (unchanged from original)
+// ═══════════════════════════════════════════════════════
+const MV = {
+  coverUrl(id, file) { return file ? proxyCover(`${COVERS}/${id}/${file}`) : ''; },
+  title(m) {
+    const t = m.attributes.title;
+    return t.en || t['ja-ro'] || t.ja || Object.values(t)[0] || 'Unknown';
+  },
+  desc(m) {
+    const d = m.attributes.description;
+    return d ? (d.en || Object.values(d)[0] || '') : '';
+  },
+  coverFile(m) {
+    return m.relationships?.find(r => r.type === 'cover_art')?.attributes?.fileName || null;
+  },
+  firstTag(m) { return m.attributes.tags?.[0]?.attributes?.name?.en || 'Manga'; },
+  tagColor(tag) {
+    const map = {
+      'Action':'#ff6b35','Fantasy':'#7b68ee','Romance':'#ff69a0','Horror':'#c62828',
+      'Sci-Fi':'#00bcd4','Slice of Life':'#66bb6a','Isekai':'#ba68c8','Sports':'#ffd700',
+      'Mystery':'#90caf9','Mecha':'#78909c','Supernatural':'#ef5350',
+      'Comedy':'#ffb74d','Drama':'#a5d6a7','Psychological':'#ce93d8','Adventure':'#80cbc4',
+    };
+    return map[tag] || '#c0162a';
+  },
+  starsHTML(r10) {
+    const r = parseFloat(r10) || 0;
+    const n = Math.round(r / 2);
+    return Array.from({length:5},(_,i)=>
+      `<span style="color:${i<n?'#ffd700':'#2a2a36'};font-size:0.62rem">★</span>`
+    ).join('') + `<span class="r">${r ? (r/2).toFixed(1) : '—'}</span>`;
+  },
+  skels(n) {
+    return Array.from({length:n},()=>`
+      <div class="skel-card">
+        <div class="skel-img"></div>
+        <div class="skel-body">
+          <div class="skel-line"></div>
+          <div class="skel-line s"></div>
+        </div>
+      </div>`).join('');
+  },
+  buildCard(m, rank, stats) {
+    const id    = m.id;
+    const title = MV.title(m);
+    const file  = MV.coverFile(m);
+    const img   = MV.coverUrl(id, file);
+    const tag   = MV.firstTag(m);
+    const gc    = MV.tagColor(tag);
+    const ch    = m.attributes.lastChapter;
+    const r10   = stats?.[id]?.rating?.bayesian ?? stats?.[id]?.rating?.average ?? 0;
+    const d     = document.createElement('div');
+    d.className = 'manga-card';
+    d.dataset.genre = tag.toLowerCase();
+    d.dataset.title = title.toLowerCase();
+    d.style.animationDelay = `${rank * 0.06}s`;
+    d.innerHTML = `
+      <div class="card-img-wrap">
+        <img src="${img}" alt="${title}" loading="lazy"
+             onerror="this.src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'"/>
+        <div class="card-rank">#${rank+1}</div>
+        <div class="card-overlay"><button class="card-read-btn">▶ Read</button></div>
+      </div>
+      <div class="card-body">
+        <div class="card-title">${title}</div>
+        <div class="card-meta">
+          <span class="card-genre" style="color:${gc}">${tag}</span>
+          <span class="card-chapter">${ch ? 'Ch.'+ch : '—'}</span>
+        </div>
+        <div class="card-stars">${MV.starsHTML(r10)}</div>
+      </div>`;
+    d.addEventListener('click', () => window.location.href = `manga-detail.html?id=${id}`);
+    return d;
+  },
+  async fetchStats(ids) {
+    if (!ids.length) return {};
+    try {
+      const qs   = ids.map(i=>`manga[]=${i}`).join('&');
+      const data = await mdFetch(`/statistics/manga?${qs}`);
+      return data.statistics || {};
+    } catch { return {}; }
+  },
+  async loadRow(rowId, path) {
+    const row = document.getElementById(rowId);
+    row.innerHTML = MV.skels(10);
+    try {
+      const data = await mdFetch(path);
+      const list = data.data || [];
+      if (!list.length) { row.innerHTML = '<div class="row-err">No manga found.</div>'; return; }
+      const stats = await MV.fetchStats(list.map(m=>m.id));
+      row.innerHTML = '';
+      list.forEach((m, i) => row.appendChild(MV.buildCard(m, i, stats)));
+    } catch (e) {
+      row.innerHTML = `
+        <div class="row-err">
+          <div><strong>⚠ Failed to load</strong> — ${e.message}</div>
+          <button class="retry-btn" onclick="MV.loadRow('${rowId}','${path}')">↻ Retry</button>
+        </div>`;
+    }
+  },
+  async loadAllRows(tagId = '') {
+    const tag  = tagId ? `&includedTags[]=${tagId}` : '';
+    const base = `&includes[]=cover_art&limit=15&availableTranslatedLanguage[]=en&contentRating[]=safe&contentRating[]=suggestive`;
+    await Promise.allSettled([
+      MV.loadRow('trendingRow', `/manga?order[followedCount]=desc${base}${tag}`),
+      MV.loadRow('topRow',      `/manga?order[rating]=desc${base}${tag}`),
+      MV.loadRow('latestRow',   `/manga?order[latestUploadedChapter]=desc${base}${tag}`),
+    ]);
+  },
+  async loadHero() {
+    try {
+      const data = await mdFetch(
+        '/manga?order[followedCount]=desc&includes[]=cover_art&limit=5&availableTranslatedLanguage[]=en&contentRating[]=safe&contentRating[]=suggestive'
+      );
+      const m = data.data?.[0]; if (!m) return;
+      const title = MV.title(m);
+      const desc  = MV.desc(m);
+      const file  = MV.coverFile(m);
+      const cover = MV.coverUrl(m.id, file);
+      const tags  = m.attributes.tags?.slice(0,3).map(t=>t.attributes.name.en) || [];
+      if (cover) document.getElementById('heroBg').style.backgroundImage = `url('${cover}')`;
+      document.getElementById('heroTitle').textContent = title;
+      document.getElementById('heroDesc').textContent  = (desc.slice(0,240) + (desc.length>240?'…':'')) || 'A featured manga on MangaVerse.';
+      try {
+        const stats = await MV.fetchStats([m.id]);
+        const r     = stats[m.id]?.rating?.bayesian || 0;
+        document.getElementById('heroMeta').innerHTML =
+          tags.map(t=>`<span class="genre-tag">${t}</span>`).join('') +
+          `<div class="stars"><span class="star">★</span><span class="rating-num">${r ? (r/2).toFixed(1) : '—'} / 5</span></div>`;
+      } catch {
+        document.getElementById('heroMeta').innerHTML = tags.map(t=>`<span class="genre-tag">${t}</span>`).join('');
+      }
+      document.getElementById('heroReadBtn').onclick   = () => location.href=`manga-detail.html?id=${m.id}`;
+      document.getElementById('heroDetailBtn').onclick = () => location.href=`manga-detail.html?id=${m.id}`;
+    } catch (e) {
+      document.getElementById('heroTitle').textContent = 'MangaVerse';
+      document.getElementById('heroDesc').textContent  = 'Discover thousands of manga titles. Browse trending, top-rated, and latest updates.';
+    }
+  },
+
+  _searchTimer: null,
+  doSearch(q) {
+    const cards = document.querySelectorAll('.manga-card');
+    if (!q) { cards.forEach(c => c.classList.remove('dimmed','highlighted')); return; }
+    cards.forEach(c => {
+      const match = c.dataset.title?.includes(q);
+      c.classList.toggle('dimmed', !match);
+      c.classList.toggle('highlighted', !!match);
+    });
+  },
+
+  init() {
+    window.addEventListener('scroll', () =>
+      document.getElementById('navbar').classList.toggle('scrolled', scrollY > 40)
+    );
+    const toggle = document.getElementById('searchToggle');
+    const input  = document.getElementById('searchInput');
+    let open = false;
+    toggle.addEventListener('click', () => {
+      open = !open;
+      input.classList.toggle('open', open);
+      if (open) setTimeout(() => input.focus(), 350);
+      else { input.value=''; MV.doSearch(''); }
+    });
+    input.addEventListener('input', e => {
+      clearTimeout(MV._searchTimer);
+      MV._searchTimer = setTimeout(() => MV.doSearch(e.target.value.trim().toLowerCase()), 300);
+    });
+    document.getElementById('catGrid').addEventListener('click', async e => {
+      const pill = e.target.closest('.cat-pill');
+      if (!pill) return;
+      document.querySelectorAll('.cat-pill').forEach(p=>p.classList.remove('active'));
+      pill.classList.add('active');
+      await MV.loadAllRows(pill.dataset.tag || '');
+    });
+    const obs = new IntersectionObserver(en => en.forEach(e => {
+      if (e.isIntersecting) e.target.classList.add('visible');
+    }), { threshold: 0.12 });
+    document.querySelectorAll('.fade-in').forEach(el => obs.observe(el));
+    MV.loadHero();
+    MV.loadAllRows();
+  }
+};
+
+document.addEventListener('DOMContentLoaded', () => MV.init());
+</script>
+</body>
+</html>
